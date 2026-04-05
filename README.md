@@ -21,12 +21,11 @@ Este proyecto utiliza **Flask** como framework principal para desarrollo web.
 
 2. **Crear entorno virtual**
    ```bash
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate       # Windows
+   python3 -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   venv\Scripts\activate       # Windows
 
 3. **Instalar dependencias**
-   ```bash
    python3 -m pip install -r requirements.txt
 
 
