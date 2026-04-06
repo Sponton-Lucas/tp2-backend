@@ -30,7 +30,13 @@ def post_partido():
         nuevo_partido = db.crear_partido(equipo_local, equipo_visitante, fecha, fase)
         return jsonify(nuevo_partido), 201
         
-        
+@app.route('/partidos/<int:id>', methods=['DELETE'])
+def delete_partido(id):
+    borrado = db.delete_partido_por_id(id)
+    if borrado:
+        return jsonify({'mensaje': 'partido borrado'}), 200
+    else:
+        return jsonify({'error': 'No se encuentra el partido'}), 404
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)
