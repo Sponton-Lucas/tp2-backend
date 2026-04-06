@@ -3,6 +3,11 @@ import db
 
 app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "API de Partidos funcionando. Usa /partidos para ver datos."
+
+
 @app.route('/partidos', methods=['GET'])
 def get_partidos():
     partidos = db.leer_partidos()
@@ -26,8 +31,9 @@ def post_partido():
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
-
-        nuevo_partido = db.crear_partido(equipo_local, equipo_visitante, fecha, fase)
+        estadio = partido.get("estadio", "")  #opcional
+        ciudad = partido.get("ciudad", "")   #opcional
+        nuevo_partido = db.crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase)
         return jsonify(nuevo_partido), 201
         
 @app.route('/partidos/<int:id>', methods=['DELETE'])

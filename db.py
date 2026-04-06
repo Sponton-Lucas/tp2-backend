@@ -17,26 +17,24 @@ def get_partido_por_id(id):
             if partidos[i]["id"] == id_ingresado:
                 return partidos[i]
 
-def crear_partido(equipo_local, equipo_visitante, fecha, fase):
+def crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase):
     partido = {
     "id": "",
-    "equipo_local": "",
-    "equipo_visitante": "",
-    "estadio": "",
-    "ciudad": "",
-    "fecha": "",
-    "fase": ""
+    "equipo_local": equipo_local,
+    "equipo_visitante": equipo_visitante,
+    "estadio": estadio,
+    "ciudad": ciudad,
+    "fecha": fecha,
+    "fase": fase
     }
 
-    partido["equipo_local"] = equipo_local
-    partido["equipo_visitante"] = equipo_visitante
-    partido["fecha"] = fecha
-    partido["fase"] = fase
-    
     with open("data/partidos.csv", "r") as archivo:
         lector = csv.DictReader(archivo)
         contenido = list(lector)
-        max_id = len(contenido)
+        if contenido:
+            max_id = max(int(p["id"]) for p in contenido)
+        else:
+            max_id = 0
     partido["id"] = max_id + 1
 
     with open("data/partidos.csv", "a") as archivo:
