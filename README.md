@@ -37,7 +37,7 @@ Este proyecto utiliza **Flask** como framework principal para desarrollo web.
 
 Te documentamos cómo probar los endpoints de la API de partidos usando curl desde la terminal.
 
-##📌 Endpoints disponibles
+## 📌 Endpoints disponibles
 
 - GET /partidos → Lista todos los partidos.
 
@@ -49,7 +49,7 @@ Te documentamos cómo probar los endpoints de la API de partidos usando curl des
 
 ---
 
-##🔹 Pruebas con curl
+## 🔹 Pruebas con curl
 
 1. **Listar todos los partidos**
 ```bash
@@ -86,7 +86,7 @@ curl -X DELETE http://127.0.0.1:5000/partidos/2
 
 ---
 
-##📂 Verificación
+## 📂 Verificación
 
 - Revisar el archivo data/partidos.csv para confirmar que los cambios se reflejan.
 
@@ -94,7 +94,7 @@ curl -X DELETE http://127.0.0.1:5000/partidos/2
 
 ---
 
-##✅ Flujo de prueba recomendado
+## ✅ Flujo de prueba recomendado
 
 - GET /partidos → ver lista inicial.
 
