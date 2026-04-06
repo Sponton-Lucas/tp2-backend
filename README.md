@@ -86,6 +86,42 @@ curl -X DELETE http://127.0.0.1:5000/partidos/2
 
 ---
 
+## 🔹 Pruebas con Postman
+
+1. Abrí Postman y hacé click en **+** para una nueva request
+
+### 1. Listar todos los partidos
+- Método: `GET`
+- URL: `http://127.0.0.1:5000/partidos`
+- Click en **Send**
+
+### 2. Ver detalle de un partido
+- Método: `GET`
+- URL: `http://127.0.0.1:5000/partidos/1`
+- Click en **Send**
+
+### 3. Crear un partido (POST)
+- Método: `POST`
+- URL: `http://127.0.0.1:5000/partidos`
+- Ir a **Body** → seleccionar **raw** → elegir **JSON**
+- Pegar esto en el body:
+```json
+{
+  "equipo_local": "Brasil",
+  "equipo_visitante": "Chile",
+  "fecha": "2026-06-15",
+  "fase": "grupos"
+}
+```
+- Click en **Send**
+
+### 4. Eliminar un partido (DELETE)
+- Método: `DELETE`
+- URL: `http://127.0.0.1:5000/partidos/2`
+- Click en **Send**
+
+---
+
 ## 📂 Verificación
 
 - Revisar el archivo data/partidos.csv para confirmar que los cambios se reflejan.
