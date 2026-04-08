@@ -10,8 +10,15 @@ def home():
 
 @app.route('/partidos', methods=['GET'])
 def get_partidos():
-    partidos = db.leer_partidos()
-    return jsonify(partidos), 200
+    equipo = request.args.get('equipo')
+    fecha = request.args.get('fecha')
+    fase = request.args.get('fase')
+    
+    partidos = db.leer_partidos(equipo=equipo, fecha=fecha, fase=fase)
+    if partidos:
+        return jsonify(partidos), 200
+    else:
+        return jsonify({'error': 'filtrado incorrecto'}), 404
 
 @app.route('/partidos/<int:id>', methods=['GET'])
 def get_partido(id):

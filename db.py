@@ -1,12 +1,58 @@
 import csv
 
-def leer_partidos():
+def leer_partidos(equipo, fecha, fase):
     with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        contenido = list(lector)
-        return contenido
+            lector = csv.DictReader(archivo)
+            contenido = list(lector)
 
-#return contenido[1]
+    contenido_filtrado = []
+
+    if (not equipo) and (not fecha) and (not fase): #se fija si los parametros estan vacios
+            return contenido
+
+    if equipo and ((not fecha) and (not fase)): #solo filtra por equipo
+        for i in range(len(contenido)):
+            if (contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo):
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+         
+    if fecha and ((not equipo) and (not fase)): #solo filtra por fecha
+        for i in range(len(contenido)):
+            if contenido[i]["fecha"] == fecha:
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+
+    if fase and ((not equipo) and (not fecha)): #filtra solo por fase
+        for i in range(len(contenido)):
+            if contenido[i]["fase"] == fase:
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+
+    if (equipo and fecha) and (not fase): #filtra por equipo y fecha
+        for i in range(len(contenido)):
+            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fecha"] == fecha): 
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+    
+    if (equipo and fase) and (not fecha): #filtra por equipo y fase
+        for i in range(len(contenido)):
+            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fase"] == fase):
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+    
+    if (fase and fecha) and (not equipo): #filtra por fecha y fase
+        for i in range(len(contenido)):
+            if (contenido[i]["fecha"] == fecha) and (contenido[i]["fase"] == fase):
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+
+    if equipo and fecha and fase: #filtra por equipo, fecha y fase
+        for i in range(len(contenido)):
+            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fecha"] == fecha) and (contenido[i]["fase"] == fase):
+                contenido_filtrado.append(contenido[i])
+        return contenido_filtrado
+        
+
 
 def get_partido_por_id(id):
     id_ingresado = str(id)
