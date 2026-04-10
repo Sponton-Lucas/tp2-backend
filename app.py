@@ -71,6 +71,27 @@ def resultado_partido(id):
     else:
         return jsonify({'error': 'No se encuentra el partido'}), 404
     
+'''
+@app.route('/partidos/<int:id>', methods=['PATCH'])
+def patch_partido(id):
+    
+    actualizado = request.get_json()
+    if not actualizado:
+        return jsonify({'error': 'No hay datos para actualizar'}), 400
+    
+    partido_modificado = db.actualizar_partido(
+        id,
+        equipo_local=actualizado.get("equipo_local"),
+        equipo_visitante=actualizado.get("equipo_visitante"),
+        fecha=actualizado.get("fecha"),
+        fase=actualizado.get("fase"),
+    )
+
+    if partido_modificado:
+        return jsonify(partido_modificado), 204
+    else:
+        return jsonify({'error': 'Partido no actualizado'}), 404
+            '''
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)
