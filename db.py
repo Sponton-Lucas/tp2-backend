@@ -125,5 +125,29 @@ def agregar_resultado_por_id(id, goles_local, goles_visitante):
     
     return False
 
+def actualizar_partido(id, equipo_local, equipo_visitante, fase, fecha):
+    id_ingresado = str(id)
+    
+    with open("data/partidos.csv", "r") as archivo:
+        lector = csv.DictReader(archivo)
+        partidos = list(lector)
+
+    for i in range(len(partidos)):
+        if partidos[i]["id"] == id_ingresado:
+           if equipo_local:
+               partidos[i]["equipo_local"] = equipo_local
+           if equipo_visitante:
+               partidos[i]["equipo_visitante"] = equipo_visitante
+           if fecha:
+               partidos[i]["fecha"] = fecha
+           if fase:
+               partidos[i]["fase"] = fase
+           with open("data/partidos.csv", "w") as archivo:
+                writer = csv.DictWriter(archivo, fieldnames=partidos[i].keys())
+                writer.writeheader()
+                writer.writerows(partidos)
+           return True
+
+    return False
 
 

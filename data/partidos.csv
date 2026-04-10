@@ -1,6 +1,7 @@
 id,equipo_local,equipo_visitante,estadio,ciudad,fecha,fase,goles_local,goles_visitante
-1,Argentina,Arabia Saudita,Lusail Stadium,Lusail,2026-06-12,grupos,1,2
-6,Francia,España,,,2026-06-28,cuartos,,
-9,Armenia,Eslovaquia,Maracaná,Rio de Janeiro,2026-07-04,cuartos,,
-10,Argentina,Mexico,Lusail,Arabia,fecha,Grupos
-11,Francia,Mexico,Lusail,Arabia,fecha,Grupos
+1,Argentina,Araba Saudita,Lusail Stadium,Lusail,2026-06-12,cuartos,1,2
+6,asdas,,,,,,,
+9,asdas,Eslovaquia,Maracaná,Rio de Janeiro,2026-07-04,cuartos,,
+10,Argentina,Mexico,Lusail,Arabia,fecha,Grupos,,
+11,Francia,Mexico,Lusail,Arabia,fecha,Grupos,,
+12,Uruguay,Mexico,Lusail Stadium,Lusail,2026-16-12,cuartos,,2
