@@ -50,6 +50,24 @@ def delete_partido(id):
         return jsonify({'mensaje': 'partido borrado'}), 200
     else:
         return jsonify({'error': 'No se encuentra el partido'}), 404
+    
+@app.route('/partidos/<int:id>/resultado', methods=['PUT'])
+def resultado_partido(id):
+    datos = request.get_json()
+    if (not datos) or ("goles_local" not in datos) or ("goles_visitante" not in datos):
+        return jsonify({'error': 'No se envio la informacion pedida (gol local o gol visitante)'}), 400
+    
+    goles_local = datos.get("goles_local")
+    goles_visitante = datos.get("goles_visitante")
+    
+    if goles_local < 0 or goles_visitante < 0:
+        return jsonify({'error': 'Los goles no pueden ser negativos'}), 400
+    
+    resultado = db.agregar_resultado_por_id(id, goles_local, goles_visitante)
+    if resultado:
+        return jsonify({'mensaje': 'resultado cargado'}), 200
+    else:
+        return jsonify({'error': 'No se encuentra el partido'}), 404
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)

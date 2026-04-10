@@ -102,5 +102,23 @@ def delete_partido_por_id(id):
                 writer.writeheader()
                 writer.writerows(partidos)
             return True
+        
+def agregar_resultado_por_id(id, goles_local, goles_visitante):
+    id_ingresado = str(id)
+    with open("data/partidos.csv", "r") as archivo:
+        lector = csv.DictReader(archivo)
+        partidos = list(lector)
+    
+    for i in range(len(partidos)):
+        if partidos[i]["id"] == id_ingresado:
+            partidos[i]["goles_local"] = goles_local
+            partidos[i]["goles_visitante"] = goles_visitante
+            with open("data/partidos.csv", "w") as archivo:
+                writer = csv.DictWriter(archivo, fieldnames=partidos[i].keys())
+                writer.writeheader()
+                writer.writerows(partidos)
+            return True
+    
+    return False
     
     return False
