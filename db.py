@@ -63,7 +63,7 @@ def get_partido_por_id(id):
             if partidos[i]["id"] == id_ingresado:
                 return partidos[i]
 
-def crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase):
+def crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase, goles_local, goles_visitante):
     partido = {
     "id": "",
     "equipo_local": equipo_local,
@@ -71,7 +71,9 @@ def crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase):
     "estadio": estadio,
     "ciudad": ciudad,
     "fecha": fecha,
-    "fase": fase
+    "fase": fase,
+    "goles_local": goles_local,
+    "goles_visitante": goles_visitante
     }
 
     with open("data/partidos.csv", "r") as archivo:
@@ -98,10 +100,12 @@ def delete_partido_por_id(id):
         if partidos[i]["id"] == id_ingresado:
             del partidos[i]
             with open("data/partidos.csv", "w") as archivo:
-                writer = csv.DictWriter(archivo, fieldnames=["id", "equipo_local", "equipo_visitante", "estadio", "ciudad", "fecha", "fase"])
+                writer = csv.DictWriter(archivo, fieldnames=["id"])
                 writer.writeheader()
                 writer.writerows(partidos)
             return True
+        
+    return False
         
 def agregar_resultado_por_id(id, goles_local, goles_visitante):
     id_ingresado = str(id)
@@ -120,5 +124,6 @@ def agregar_resultado_por_id(id, goles_local, goles_visitante):
             return True
     
     return False
-    
-    return False
+
+
+

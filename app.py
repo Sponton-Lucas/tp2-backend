@@ -38,9 +38,11 @@ def post_partido():
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
+        gol_local = partido.get("goles_local", "")  #opcional
+        gol_visitante = partido.get("goles_visitante", "")  #opcional
         estadio = partido.get("estadio", "")  #opcional
         ciudad = partido.get("ciudad", "")   #opcional
-        nuevo_partido = db.crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase)
+        nuevo_partido = db.crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase, gol_local, gol_visitante)
         return jsonify(nuevo_partido), 201
         
 @app.route('/partidos/<int:id>', methods=['DELETE'])
@@ -68,6 +70,7 @@ def resultado_partido(id):
         return jsonify({'mensaje': 'resultado cargado'}), 200
     else:
         return jsonify({'error': 'No se encuentra el partido'}), 404
+    
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)
