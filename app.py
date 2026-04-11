@@ -91,7 +91,29 @@ def patch_partido(id):
     else:
         return jsonify({'error': 'Partido no encontrado'}), 404
 
+@app.route('/partidos/<int:id>', methods=['PUT'])
+def put_partido(id):
+
+    remplazado = request.get_json()
+   
+    campos_requeridos = [ "equipo_local", "equipo_visitante", "fecha", "fase" ]
+
+    if not remplazado or not all  (campo in remplazado for campo in campos_requeridos):
+        return jsonify({'error': 'Faltan datos para reemplazar el partido'}), 400
+    
+
+    partido_remplazado = db.reemplazar_partido(
+         id,
+         equipo_local=remplazado.get("equipo_local"),
+         equipo_visitante=remplazado.get("equipo_visitante"),
+         fecha=remplazado.get("fecha"),
+         fase=remplazado.get("fase"), 
+    )   
+    if partido_remplazado:
+        return jsonify(partido_remplazado), 204 
+    else:
+        return jsonify({'error' : 'Partido no encontrado'}), 404
+    
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)
-

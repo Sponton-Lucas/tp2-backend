@@ -150,4 +150,27 @@ def actualizar_partido(id, equipo_local, equipo_visitante, fase, fecha):
 
     return False
 
+def reemplazar_partido(id, equipo_local, equipo_visitante, fecha, fase):
+    id_ingresado = str(id)
+    with open("data/partidos.csv", "r") as archivo:
+        lector = csv.DictReader(archivo)
+        partidos = list(lector)
+    encontrado = False
 
+    for i in range(len(partidos)):
+     if partidos[i]["id"] == id_ingresado:
+        partidos[i]["equipo_local"] = equipo_local
+        partidos[i]["equipo_visitante"] = equipo_visitante
+        partidos[i]["fecha"] = fecha
+        partidos[i]["fase"] = fase
+        
+        encontrado = True
+        break
+    if encontrado: 
+     with open("data/partidos.csv", "w", newline='') as archivo:
+      writer = csv.DictWriter(archivo, fieldnames= partidos[i].keys())
+      writer.writeheader()
+      writer.writerows(partidos)
+     return True
+
+    return False
