@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request 
 import db
+import mysql.connector
 
 app = Flask(__name__)
 
@@ -13,18 +14,25 @@ def get_partidos():
     equipo = request.args.get('equipo')
     fecha = request.args.get('fecha')
     fase = request.args.get('fase')
-    
-    partidos = db.leer_partidos(equipo=equipo, fecha=fecha, fase=fase)
+    partidos = db.get_partidos(equipo, fecha, fase)
     if partidos:
-        return jsonify(partidos), 200
+        return jsonify(partidos)
     else:
-        return jsonify({'error': 'filtrado incorrecto'}), 404
+        return jsonify({'error': 'error'}), 404
 
 @app.route('/partidos/<int:id>', methods=['GET'])
 def get_partido(id):
     partido = db.get_partido_por_id(id)
     if partido:
-        return jsonify(partido), 200
+        return jsonify(partido)
+    else:
+        return jsonify({'error': 'Partido no encontrado'}), 404
+
+@app.route('/partidos/<int:id>', methods=['DELETE'])
+def delete_partido(id):
+    borrado = db.delete_partido_por_id(id)
+    if borrado:
+        return jsonify({'mensaje': 'partido borrado'}), 200
     else:
         return jsonify({'error': 'No se encuentra el partido'}), 404
 
@@ -38,82 +46,60 @@ def post_partido():
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
-        gol_local = partido.get("goles_local", "")  #opcional
-        gol_visitante = partido.get("goles_visitante", "")  #opcional
-        estadio = partido.get("estadio", "")  #opcional
-        ciudad = partido.get("ciudad", "")   #opcional
-        nuevo_partido = db.crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase, gol_local, gol_visitante)
-        return jsonify(nuevo_partido), 201
-        
-@app.route('/partidos/<int:id>', methods=['DELETE'])
-def delete_partido(id):
-    borrado = db.delete_partido_por_id(id)
-    if borrado:
-        return jsonify({'mensaje': 'partido borrado'}), 200
-    else:
-        return jsonify({'error': 'No se encuentra el partido'}), 404
-    
-@app.route('/partidos/<int:id>/resultado', methods=['PUT'])
-def resultado_partido(id):
-    datos = request.get_json()
-    if (not datos) or ("goles_local" not in datos) or ("goles_visitante" not in datos):
-        return jsonify({'error': 'No se envio la informacion pedida (gol local o gol visitante)'}), 400
-    
-    goles_local = datos.get("goles_local")
-    goles_visitante = datos.get("goles_visitante")
-    
-    if goles_local < 0 or goles_visitante < 0:
-        return jsonify({'error': 'Los goles no pueden ser negativos'}), 400
-    
-    resultado = db.agregar_resultado_por_id(id, goles_local, goles_visitante)
-    if resultado:
-        return jsonify({'mensaje': 'resultado cargado'}), 200
-    else:
-        return jsonify({'error': 'No se encuentra el partido'}), 404
-    
-@app.route('/partidos/<int:id>', methods=['PATCH'])
-def patch_partido(id):
-    
-    actualizado = request.get_json()
-    if not actualizado:
-        return jsonify({'error': 'No hay datos para actualizar'}), 400
-    
-    partido_modificado = db.actualizar_partido(
-        id,
-        equipo_local=actualizado.get("equipo_local"),
-        equipo_visitante=actualizado.get("equipo_visitante"),
-        fecha=actualizado.get("fecha"),
-        fase=actualizado.get("fase"),
-    )
+        partido_nuevo = db.crear_partido(equipo_local, equipo_visitante,fecha, fase)
+        if partido_nuevo:
+            return jsonify({'message': 'partido creado'}), 201
+        else:
+            return jsonif({'error': 'no se pudo crea el partido'}), 400
 
-    if partido_modificado:
-        return jsonify(partido_modificado), 204
+@app.route('/partidos/<int:id>/resultado', methods=['PUT'])
+def put_partidos(id):
+    resultado = request.get_json()
+    if (not resultado) or ("goles_visitante" not in resultado) or ("goles_local" not in resultado):
+        return jsonify({'error': 'Algo falta'}), 400
     else:
-        return jsonify({'error': 'Partido no encontrado'}), 404
+        goles_visitante = resultado.get("goles_visitante")
+        goles_local = resultado.get("goles_local")
+        
+        if goles_local < 0 or goles_visitante < 0:
+            return jsonify({'error': 'Los goles no pueden ser negativos'}), 400
+        resultado = db.agregar_resultado_por_id(id, goles_local, goles_visitante)
+
+        if resultado:
+            return jsonify({'mensaje': 'resultado cargado'}), 200
+        else:
+            return jsonify({'error': 'No se encuentra el partido'}), 404
 
 @app.route('/partidos/<int:id>', methods=['PUT'])
-def put_partido(id):
-
-    remplazado = request.get_json()
-   
-    campos_requeridos = [ "equipo_local", "equipo_visitante", "fecha", "fase" ]
-
-    if not remplazado or not all  (campo in remplazado for campo in campos_requeridos):
-        return jsonify({'error': 'Faltan datos para reemplazar el partido'}), 400
-    
-
-    partido_remplazado = db.reemplazar_partido(
-         id,
-         equipo_local=remplazado.get("equipo_local"),
-         equipo_visitante=remplazado.get("equipo_visitante"),
-         fecha=remplazado.get("fecha"),
-         fase=remplazado.get("fase"), 
-    )   
-    if partido_remplazado:
-        return jsonify(partido_remplazado), 204 
+def put_partidos_resultado(id):
+    partido = request.get_json()
+    if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
+        return jsonify({'error': 'Algo falta'}), 400
     else:
-        return jsonify({'error' : 'Partido no encontrado'}), 404
-    
+        equipo_local = partido.get("equipo_local")
+        equipo_visitante = partido.get("equipo_visitante")
+        fecha = partido.get("fecha")
+        fase = partido.get("fase")
+        actualizar_partido = db.actualizar_partido_por_id(id, equipo_local, equipo_visitante,fecha, fase)
+        if actualizar_partido:
+            return jsonify({'message': 'partido actualizado'}), 201
+        else:
+            return jsonif({'error': 'no se pudo actualizar el partido'}), 404
+
+
+@app.route('/partidos/<int:id>', methods=['PATCH'])
+def patch_partidos(id):
+    partido = request.get_json()
+    equipo_local = partido.get("equipo_local")
+    equipo_visitante = partido.get("equipo_visitante")
+    fecha = partido.get("fecha")
+    fase = partido.get("fase")
+    actualizar_partido_parcialmente = db.actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fecha, fase)
+    if actualizar_partido_parcialmente:
+        return jsonify({'message': 'partido actualizado parcialmente'}), 201
+    else:
+        return jsonif({'error': 'no se pudo actualizar el partido'}), 404
+
 
 if __name__ == '__main__':
-	app.run(port=5000, debug=True)
+	app.run(port=5000, debug=True)  

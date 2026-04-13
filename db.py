@@ -1,176 +1,123 @@
 import csv
+import mysql.connector
 
-def leer_partidos(equipo, fecha, fase):
-    with open("data/partidos.csv", "r") as archivo:
-            lector = csv.DictReader(archivo)
-            contenido = list(lector)
+db_config = {
+    'host':'localhost',
+    'user':'agustin',
+    'password':'000000',
+    'database':'tp2_db'
+}
 
-    contenido_filtrado = []
+def get_db_connection():
+    conn = mysql.connector.connect(**db_config)
+    return conn
 
-    if (not equipo) and (not fecha) and (not fase): #se fija si los parametros estan vacios
-            return contenido
-
-    if equipo and ((not fecha) and (not fase)): #solo filtra por equipo
-        for i in range(len(contenido)):
-            if (contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo):
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-         
-    if fecha and ((not equipo) and (not fase)): #solo filtra por fecha
-        for i in range(len(contenido)):
-            if contenido[i]["fecha"] == fecha:
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-
-    if fase and ((not equipo) and (not fecha)): #filtra solo por fase
-        for i in range(len(contenido)):
-            if contenido[i]["fase"] == fase:
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-
-    if (equipo and fecha) and (not fase): #filtra por equipo y fecha
-        for i in range(len(contenido)):
-            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fecha"] == fecha): 
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-    
-    if (equipo and fase) and (not fecha): #filtra por equipo y fase
-        for i in range(len(contenido)):
-            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fase"] == fase):
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-    
-    if (fase and fecha) and (not equipo): #filtra por fecha y fase
-        for i in range(len(contenido)):
-            if (contenido[i]["fecha"] == fecha) and (contenido[i]["fase"] == fase):
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-
-    if equipo and fecha and fase: #filtra por equipo, fecha y fase
-        for i in range(len(contenido)):
-            if ((contenido[i]["equipo_local"] == equipo) or (contenido[i]["equipo_visitante"] == equipo)) and (contenido[i]["fecha"] == fecha) and (contenido[i]["fase"] == fase):
-                contenido_filtrado.append(contenido[i])
-        return contenido_filtrado
-        
+def get_partidos(equipo, fecha, fase):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    try:
+        cursor.execute('SELECT * FROM partidos WHERE ( (equipo_visitante = %s OR equipo_local = %s) OR %s IS NULL) AND (fecha = %s OR %s IS NULL) AND (fase = %s OR %s IS NULL);', (equipo, equipo, equipo, fecha, fecha, fase, fase,))
+        partidos = cursor.fetchall()
+        return partidos
+    finally:
+        cursor.close()
+        coneccion.close()
 
 
 def get_partido_por_id(id):
     id_ingresado = str(id)
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        partidos = list(lector)
-        for i in range(len(partidos)):
-            if partidos[i]["id"] == id_ingresado:
-                return partidos[i]
-
-def crear_partido(equipo_local, equipo_visitante,estadio,ciudad,fecha, fase, goles_local, goles_visitante):
-    partido = {
-    "id": "",
-    "equipo_local": equipo_local,
-    "equipo_visitante": equipo_visitante,
-    "estadio": estadio,
-    "ciudad": ciudad,
-    "fecha": fecha,
-    "fase": fase,
-    "goles_local": goles_local,
-    "goles_visitante": goles_visitante
-    }
-
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        contenido = list(lector)
-        if contenido:
-            max_id = max(int(p["id"]) for p in contenido)
-        else:
-            max_id = 0
-    partido["id"] = max_id + 1
-
-    with open("data/partidos.csv", "a") as archivo:
-        writer = csv.DictWriter(archivo, fieldnames=partido.keys())
-        writer.writerow(partido)
-    return partido
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    
+    try:
+        cursor.execute('SELECT * FROM partidos WHERE id = %s', (id_ingresado,))
+        partido = cursor.fetchone()
+        return partido
+    finally:
+        cursor.close()
+        coneccion.close()
 
 def delete_partido_por_id(id):
     id_ingresado = str(id)
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        partidos = list(lector)
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
     
-    for i in range(len(partidos)):
-        if partidos[i]["id"] == id_ingresado:
-            del partidos[i]
-            with open("data/partidos.csv", "w") as archivo:
-                writer = csv.DictWriter(archivo, fieldnames=["id"])
-                writer.writeheader()
-                writer.writerows(partidos)
-            return True
-        
-    return False
-        
+    try:
+        cursor.execute('DELETE FROM partidos WHERE id = %s', (id_ingresado,))
+        coneccion.commit()
+        return True
+    finally:
+        cursor.close()
+        coneccion.close()  
+  
+def crear_partido(equipo_local, equipo_visitante,fecha, fase):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    
+    try:
+        cursor.execute('INSERT INTO partidos (equipo_visitante, equipo_local, fecha, fase) VALUES(%s, %s, %s, %s)', (equipo_visitante, equipo_local, fecha, fase,))
+        coneccion.commit()
+        return True
+    finally:
+            cursor.close()
+            coneccion.close()
+
 def agregar_resultado_por_id(id, goles_local, goles_visitante):
-    id_ingresado = str(id)
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        partidos = list(lector)
-    
-    for i in range(len(partidos)):
-        if partidos[i]["id"] == id_ingresado:
-            partidos[i]["goles_local"] = goles_local
-            partidos[i]["goles_visitante"] = goles_visitante
-            with open("data/partidos.csv", "w") as archivo:
-                writer = csv.DictWriter(archivo, fieldnames=partidos[i].keys())
-                writer.writeheader()
-                writer.writerows(partidos)
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    id_ingresado = str(id)    
+
+    try:
+        cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
+        partido = cursor.fetchone()
+        if not partido:
+            return jsonify({'error': 'no existe el partido'}), 404
+        else:
+            cursor.execute('INSERT INTO resultados (partido_id, goles_visitante, goles_local) VALUES(%s, %s, %s) ON DUPLICATE KEY UPDATE goles_visitante = VALUES(goles_visitante), goles_local = VALUES(goles_local)', (id_ingresado, goles_visitante, goles_local,))
+            coneccion.commit()
             return True
+    finally:
+        cursor.close()
+        coneccion.close()
+
+
+def actualizar_partido_por_id(id, equipo_local, equipo_visitante,fecha, fase):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    id_ingresado = str(id)  
     
-    return False
+    try:
+        cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
+        partido = cursor.fetchone()
+        if not partido:
+            return jsonify({'error': 'no existe el partido'}), 404
+        else:
+            cursor.execute('UPDATE partidos SET equipo_local = %s, equipo_visitante = %s, fecha = %s, fase = %s WHERE id = %s', (equipo_local, equipo_visitante, fecha, fase, id_ingresado,))
 
-def actualizar_partido(id, equipo_local, equipo_visitante, fase, fecha):
-    id_ingresado = str(id)
+            coneccion.commit()
+            return True
+    finally:
+        cursor.close()
+        coneccion.close()
+
+
+def actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fecha, fase):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    id_ingresado = str(id)  
     
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        partidos = list(lector)
+    try:
+        cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
+        partido = cursor.fetchone()
+        if not partido:
+            return jsonify({'error': 'no existe el partido'}), 404
+        else:
+            cursor.execute('UPDATE partidos SET equipo_local = COALESCE(%s, equipo_local), equipo_visitante = COALESCE(%s, equipo_visitante), fecha = COALESCE(%s, fecha), fase = COALESCE(%s, fase) WHERE id = %s', (equipo_local, equipo_visitante, fecha, fase, id_ingresado,))
 
-    for i in range(len(partidos)):
-        if partidos[i]["id"] == id_ingresado:
-           if equipo_local:
-               partidos[i]["equipo_local"] = equipo_local
-           if equipo_visitante:
-               partidos[i]["equipo_visitante"] = equipo_visitante
-           if fecha:
-               partidos[i]["fecha"] = fecha
-           if fase:
-               partidos[i]["fase"] = fase
-           with open("data/partidos.csv", "w") as archivo:
-                writer = csv.DictWriter(archivo, fieldnames=partidos[i].keys())
-                writer.writeheader()
-                writer.writerows(partidos)
-           return True
+            coneccion.commit()
+            return True
+    finally:
+        cursor.close()
+        coneccion.close()
 
-    return False
 
-def reemplazar_partido(id, equipo_local, equipo_visitante, fecha, fase):
-    id_ingresado = str(id)
-    with open("data/partidos.csv", "r") as archivo:
-        lector = csv.DictReader(archivo)
-        partidos = list(lector)
-    encontrado = False
-
-    for i in range(len(partidos)):
-     if partidos[i]["id"] == id_ingresado:
-        partidos[i]["equipo_local"] = equipo_local
-        partidos[i]["equipo_visitante"] = equipo_visitante
-        partidos[i]["fecha"] = fecha
-        partidos[i]["fase"] = fase
-        
-        encontrado = True
-        break
-    if encontrado: 
-     with open("data/partidos.csv", "w", newline='') as archivo:
-      writer = csv.DictWriter(archivo, fieldnames= partidos[i].keys())
-      writer.writeheader()
-      writer.writerows(partidos)
-     return True
-
-    return False
