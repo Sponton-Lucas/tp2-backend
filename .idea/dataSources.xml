@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
+    <data-source source="LOCAL" name="@localhost" uuid="abd4b4c4-8dc1-4ed2-923c-80c8e2708ac9">
+      <driver-ref>mysql_aurora.aws_wrapper</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>software.amazon.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:aws-wrapper:mysql://localhost:3306</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+    <data-source source="LOCAL" name="tp2_db@localhost" uuid="22e23647-9cda-4f08-b964-2d81e768c9ca">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://localhost:3306/tp2_db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
+  </component>
+</project>
