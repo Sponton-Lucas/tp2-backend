@@ -11,13 +11,17 @@ def get_db_connection():
     conn = mysql.connector.connect(**db_config)
     return conn
 
-def get_partidos(equipo, fecha, fase):
+def get_partidos(equipo, fecha, fase, limit, offset):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
     try:
-        cursor.execute('SELECT * FROM partidos WHERE ( (equipo_visitante = %s OR equipo_local = %s) OR %s IS NULL) AND (fecha = %s OR %s IS NULL) AND (fase = %s OR %s IS NULL);', (equipo, equipo, equipo, fecha, fecha, fase, fase,))
+        cursor.execute('SELECT COUNT(*) as total FROM partidos WHERE ( (equipo_visitante = %s OR equipo_local = %s) OR %s IS NULL) AND (fecha = %s OR %s IS NULL) AND (fase = %s OR %s IS NULL);', (equipo, equipo, equipo, fecha, fecha, fase, fase))
+        total = cursor.fetchone()['total']
+
+        cursor.execute('SELECT * FROM partidos WHERE ( (equipo_visitante = %s OR equipo_local = %s) OR %s IS NULL) AND (fecha = %s OR %s IS NULL) AND (fase = %s OR %s IS NULL) LIMIT %s OFFSET %s;',(equipo, equipo, equipo, fecha, fecha, fase, fase, limit,  offset))
         partidos = cursor.fetchall()
-        return partidos
+
+        return partidos, total
     finally:
         cursor.close()
         coneccion.close()

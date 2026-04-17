@@ -14,9 +14,29 @@ def get_partidos():
     equipo = request.args.get('equipo')
     fecha = request.args.get('fecha')
     fase = request.args.get('fase')
-    partidos = db.get_partidos(equipo, fecha, fase)
+    limit = int (request.args.get('_limit', 10))
+    offset = int (request.args.get('_offset', 0))
+
+    partidos, total = db.get_partidos(equipo=equipo, fecha=fecha, fase=fase, limit=limit, offset=offset)
+
+    filtros= ''
+    if equipo: filtros += f'&equipo={equipo}'
+    if fase: filtros += f'&fase={fase}'
+    if fecha: filtros += f'&fecha={fecha}'
+
+    last_offset = max(0, ((total - 1) // limit) * limit)
+
+    respuesta = {
+        'data': partidos,
+        'total': total,
+        '_first': f'/partidos?_limit={limit}&_offset=0{filtros}',
+        '_prev': f'/partidos?_limit={limit}&_offset={max(0, offset - limit)}{filtros}' if offset > 0 else None,
+        '_next': f'/partidos?_limit={limit}&_offset=(min(last_offset, offset + limit)){filtros}' if (offset + limit) < total else None,
+        '_last': f'/partidos?_limit={limit}&_offset={last_offset}{filtros}'
+    }
+
     if partidos:
-        return jsonify(partidos)
+        return jsonify(respuesta)
     else:
         return jsonify({'error': 'error'}), 404
 
