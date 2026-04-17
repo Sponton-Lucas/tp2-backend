@@ -1,10 +1,9 @@
-import csv
 import mysql.connector
 
 db_config = {
     'host':'localhost',
-    'user':'agustin',
-    'password':'000000',
+    'user':'root',
+    'password':'',
     'database':'tp2_db'
 }
 
