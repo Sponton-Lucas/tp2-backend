@@ -71,7 +71,7 @@ def agregar_resultado_por_id(id, goles_local, goles_visitante):
         cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
         partido = cursor.fetchone()
         if not partido:
-            return jsonify({'error': 'no existe el partido'}), 404
+            return False
         else:
             cursor.execute('INSERT INTO resultados (partido_id, goles_visitante, goles_local) VALUES(%s, %s, %s) ON DUPLICATE KEY UPDATE goles_visitante = VALUES(goles_visitante), goles_local = VALUES(goles_local)', (id_ingresado, goles_visitante, goles_local,))
             coneccion.commit()
@@ -90,7 +90,7 @@ def actualizar_partido_por_id(id, equipo_local, equipo_visitante,fecha, fase):
         cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
         partido = cursor.fetchone()
         if not partido:
-            return jsonify({'error': 'no existe el partido'}), 404
+            return False
         else:
             cursor.execute('UPDATE partidos SET equipo_local = %s, equipo_visitante = %s, fecha = %s, fase = %s WHERE id = %s', (equipo_local, equipo_visitante, fecha, fase, id_ingresado,))
 
@@ -110,7 +110,7 @@ def actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fe
         cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
         partido = cursor.fetchone()
         if not partido:
-            return jsonify({'error': 'no existe el partido'}), 404
+            return False
         else:
             cursor.execute('UPDATE partidos SET equipo_local = COALESCE(%s, equipo_local), equipo_visitante = COALESCE(%s, equipo_visitante), fecha = COALESCE(%s, fecha), fase = COALESCE(%s, fase) WHERE id = %s', (equipo_local, equipo_visitante, fecha, fase, id_ingresado,))
 

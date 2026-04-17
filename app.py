@@ -50,7 +50,7 @@ def post_partido():
         if partido_nuevo:
             return jsonify({'message': 'partido creado'}), 201
         else:
-            return jsonif({'error': 'no se pudo crea el partido'}), 400
+            return jsonify({'error': 'no se pudo crea el partido'}), 400
 
 @app.route('/partidos/<int:id>/resultado', methods=['PUT'])
 def put_partidos(id):
@@ -68,7 +68,7 @@ def put_partidos(id):
         if resultado:
             return jsonify({'mensaje': 'resultado cargado'}), 200
         else:
-            return jsonify({'error': 'No se encuentra el partido'}), 404
+            return jsonify({'error': 'No se encuentra el partido para actualizar'}), 404
 
 @app.route('/partidos/<int:id>', methods=['PUT'])
 def put_partidos_resultado(id):
@@ -84,7 +84,7 @@ def put_partidos_resultado(id):
         if actualizar_partido:
             return jsonify({'message': 'partido actualizado'}), 201
         else:
-            return jsonif({'error': 'no se pudo actualizar el partido'}), 404
+            return jsonify({'error': 'no se pudo actualizar el partido'}), 404
 
 
 @app.route('/partidos/<int:id>', methods=['PATCH'])
@@ -98,7 +98,7 @@ def patch_partidos(id):
     if actualizar_partido_parcialmente:
         return jsonify({'message': 'partido actualizado parcialmente'}), 201
     else:
-        return jsonif({'error': 'no se pudo actualizar el partido'}), 404
+        return jsonify({'error': 'no se pudo actualizar el partido'}), 404
 
 
 if __name__ == '__main__':
