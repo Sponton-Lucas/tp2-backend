@@ -6,13 +6,13 @@ CREATE TABLE partidos (
 	equipo_visitante varchar(100) NOT NULL,
 	equipo_local varchar(100) NOT NULL,
 	fecha DATE NOT NULL,
-	fase varchar(100) NOT NULL
+	fase varchar(100) NOT NULL  /* Posible cambio de unificar tablas(o añadir) la tabla resultados a tabla partidos. por el hecho de que deberia poder estar vacios los campos de goles, para luego la tabla de predicciones.*/
 );
 
 CREATE TABLE resultados (
 	partido_id INT PRIMARY KEY,
-	goles_visitante INT NOT NULL,
-	goles_local INT NOT NULL,
+	goles_visitante INT NOT NULL,    /* Esto deberia admitir q sea null, lo probar desp con la funcion de predicciones. */
+	goles_local INT NOT NULL,   /* Esto deberia admitir q sea null, lo probar desp con la funcion de predicciones. */
 	FOREIGN KEY (partido_id) REFERENCES partidos(id) ON DELETE CASCADE
 );
 

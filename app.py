@@ -73,7 +73,7 @@ def post_partido():
             return jsonify({'error': 'no se pudo crea el partido'}), 400
 
 @app.route('/partidos/<int:id>/resultado', methods=['PUT'])
-def put_partidos(id):
+def put_partidos_resultado(id):
     resultado = request.get_json()
     if (not resultado) or ("goles_visitante" not in resultado) or ("goles_local" not in resultado):
         return jsonify({'error': 'Algo falta'}), 400
@@ -91,7 +91,7 @@ def put_partidos(id):
             return jsonify({'error': 'No se encuentra el partido para actualizar'}), 404
 
 @app.route('/partidos/<int:id>', methods=['PUT'])
-def put_partidos_resultado(id):
+def put_partidos(id):
     partido = request.get_json()
     if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
         return jsonify({'error': 'Algo falta'}), 400
@@ -119,6 +119,29 @@ def patch_partidos(id):
         return jsonify({'message': 'partido actualizado parcialmente'}), 201
     else:
         return jsonify({'error': 'no se pudo actualizar el partido'}), 404
+
+
+@app.route('/partidos/<int:id>/prediccion', methods=['POST'])
+def post_prediccion():
+    prediccion = request.get_json()
+    if (not prediccion) or ("usuario_id" not in prediccion) or ("partido_id" not in prediccion) or ("goles_visitante" not in prediccion) or ("goles_local" not in prediccion):
+        return jsonify({'error': 'Esta faltando datos para hacer la predicción.'}), 400
+    else:
+        usuario_id = prediccion.get("usuario_id")
+        partido_id = prediccion.get("partido_id")
+        goles_local = prediccion.get("goles_local")
+        goles_visitante = prediccion.get("goles_visitante")
+
+        if (goles_local or goles_visitante) < 0:
+            return jsonify ({'error': 'Los goles no pueden ser negativos.'}), 400
+
+        prediccion_hecha = db.hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante)
+        if prediccion_hecha:
+            return jsonify({'message': 'Predicción creada correctamente.'}), 201
+        else:
+            return jsonify({'error': 'No se pudo crear la predicción (verificar si el partido o el usuario existe)'}), 400
+
+
 
 
 if __name__ == '__main__':
