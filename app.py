@@ -141,6 +141,19 @@ def post_prediccion():
         else:
             return jsonify({'error': 'No se pudo crear la predicción (verificar si el partido o el usuario existe)'}), 400
 
+@app.route('/usuarios', methods=['POST'])
+def post_usuario():
+    usuario = request.get_json()
+    if (not usuario) or ("nombre" not in usuario) or ("email" not in usuario):
+        return jsonify({'error': 'Algo falta'}), 400
+    else:
+        nombre = usuario.get("nombre")
+        email = usuario.get("email")
+        usuario_nuevo = db.crear_usuario(nombre, email)
+        if usuario_nuevo:
+            return jsonify({'message': 'usuario creado'}), 201
+        else:
+            return jsonify({'error': 'no se pudo crea el usuario'}), 400
 
 
 

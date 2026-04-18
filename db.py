@@ -155,3 +155,14 @@ def hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante):
     finally:
             cursor.close()
             coneccion.close()
+
+def crear_usuario(nombre, email):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    try:
+        cursor.execute('INSERT INTO usuarios (nombre, email) VALUES(%s, %s)', (nombre, email,))
+        coneccion.commit()
+        return True
+    finally:
+            cursor.close()
+            coneccion.close()
