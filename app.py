@@ -60,12 +60,14 @@ def delete_partido(id):
 def post_partido():
     partido = request.get_json()
     if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
-        return jsonify({'error': 'Algo falta'}), 400
+        return jsonify({'error': 'Algo falta'}), 400    
     else:
         equipo_local = partido.get("equipo_local")
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
+        if (not equipo_local) or (not equipo_visitante) or (not fecha) or (not fase):
+            return jsonify({'error': 'No podes mandar parametros vacios'}) 
         partido_nuevo = db.crear_partido(equipo_local, equipo_visitante,fecha, fase)
         if partido_nuevo:
             return jsonify({'message': 'partido creado'}), 201
@@ -114,6 +116,18 @@ def patch_partidos(id):
     equipo_visitante = partido.get("equipo_visitante")
     fecha = partido.get("fecha")
     fase = partido.get("fase")
+    if equipo_local is not None and not equipo_local.strip():
+        return jsonify({'error': 'equipo_local no puede estar vacio'}), 400
+
+    if equipo_visitante is not None and not equipo_visitante.strip():
+        return jsonify({'error': 'equipo_visitante no puede estar vacio'}), 400
+
+    if fecha is not None and not fecha.strip():
+        return jsonify({'error': 'fecha no puede estar vacia'}), 400
+
+    if fase is not None and not fase.strip():
+        return jsonify({'error': 'fase no puede estar vacia'}), 400
+
     actualizar_partido_parcialmente = db.actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fecha, fase)
     if actualizar_partido_parcialmente:
         return jsonify({'message': 'partido actualizado parcialmente'}), 201

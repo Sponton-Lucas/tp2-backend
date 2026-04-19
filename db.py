@@ -46,6 +46,10 @@ def delete_partido_por_id(id):
     cursor = coneccion.cursor(dictionary=True)
     
     try:
+        cursor.execute('SELECT * FROM partidos WHERE id = %s', (id_ingresado,))
+        existe_partido = cursor.fetchone()
+        if not existe_partido:
+            return False
         cursor.execute('DELETE FROM partidos WHERE id = %s', (id_ingresado,))
         coneccion.commit()
         return True
