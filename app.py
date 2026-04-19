@@ -202,21 +202,21 @@ def reemplazar_usuario(id):
     if usuario_existente:
         actualizado = db.actualizar_usuario_por_id(nombre, email, id)
         if actualizado:
-            return jsonify('Se actualizo el usuario'), 201
+            return jsonify({'message':'Se actualizo el usuario'}), 201
         else:
-            return jsonify('No se pudo actualizar el usuario'), 500
+            return jsonify({'error':'No se pudo actualizar el usuario'}), 500
     else: 
         usuario_nuevo = db.crear_usuario_por_id(nombre, email, id)
         if usuario_nuevo:
-            return jsonify('Se creo el usuario'), 201
+            return jsonify({'message':'Se creo el usuario'}), 201
         else:
-            return jsonify('No se pudo crear el usuario'), 500
+            return jsonify({'error':'No se pudo crear el usuario'}), 500
 
 @app.route('/usuarios/<int:id>', methods=['DELETE'])
 def delete_usuario(id):
     borrado = db.delete_usuario(id)
     if borrado:
-        return jsonify("Usuario eliminado correctamente"),201
+        return jsonify({'message':"Usuario eliminado correctamente"}),201
     else:
         return jsonify({'error': 'No se encuentra el usuario'}), 404
 
