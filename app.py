@@ -155,6 +155,21 @@ def post_usuario():
         else:
             return jsonify({'error': 'no se pudo crea el usuario'}), 400
 
+@app.route('/usuarios', methods=['GET']) #falta paginacion
+def get_usuarios():
+    usuarios = db.obtener_usuarios()
+    if usuarios:
+        return jsonify(usuarios)
+    else:
+        return jsonify({'error': 'No existe la tabla'}), 404
+    
+@app.route('/usuarios/<int:id>', methods=['GET'])
+def get_usuario_por_id(id):
+    id_usuarios = db.obtener_usuario_por_id(id)
+    if id_usuarios:
+        return jsonify(id_usuarios)
+    else:
+        return jsonify({'error': 'usuario no encontrado'}), 404
 
 @app.route('/usuarios/<int:id>', methods = ['PUT'])
 def reemplazar_usuario(id):
@@ -169,12 +184,17 @@ def reemplazar_usuario(id):
     usuario_existente = db.obtener_usuario_por_id(id)
 
     if usuario_existente:
-        return jsonify({'error':'el nombre y email, estan en uso, ingrese otros datos no existentes'}), 409
-
-    usuario_nuevo = db.crear_usuario_por_id(id, nombre, email)
-
-    if usuario_nuevo: 
-        return jsonify('Usuario creado con exito'), 201
+        actualizado = db.actualizar_usuario_por_id(nombre, email, id)
+        if actualizado:
+            return jsonify('Se actualizo el usuario'), 201
+        else:
+            return jsonify('No se pudo actualizar el usuario'), 500
+    else: 
+        usuario_nuevo = db.crear_usuario_por_id(nombre, email, id)
+        if usuario_nuevo:
+            return jsonify('Se creo el usuario'), 201
+        else:
+            return jsonify('No se pudo crear el usuario'), 500
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  
