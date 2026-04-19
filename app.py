@@ -156,6 +156,25 @@ def post_usuario():
             return jsonify({'error': 'no se pudo crea el usuario'}), 400
 
 
+@app.route('/usuarios/<int:id>', methods = ['PUT'])
+def reemplazar_usuario(id):
+    reemplazo_usuario = request.get_json()
+
+    if (not reemplazo_usuario) or ("nombre" not in reemplazo_usuario) or ("email" not in reemplazo_usuario):
+        return jsonify({'error':'datos incorrectos, ingrese de nuevo'}), 400
+
+    nombre = reemplazo_usuario.get("nombre")
+    email = reemplazo_usuario.get("email")
+
+    usuario_existente = db.obtener_usuario_por_id(id)
+
+    if usuario_existente:
+        return jsonify({'error':'el nombre y email, estan en uso, ingrese otros datos no existentes'}), 409
+
+    usuario_nuevo = db.crear_usuario_por_id(id, nombre, email)
+
+    if usuario_nuevo: 
+        return jsonify('Usuario creado con exito'), 201
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  

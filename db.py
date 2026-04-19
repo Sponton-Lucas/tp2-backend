@@ -166,3 +166,27 @@ def crear_usuario(nombre, email):
     finally:
             cursor.close()
             coneccion.close()
+
+def obtener_usuario_por_id(id):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try:
+        cursor.execute('SELECT id FROM usuarios WHERE id = %s', (id,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        coneccion.close()
+
+def crear_usuario_por_id(id, nombre, email):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try:
+        cursor.execute('INSERT INTO usuarios (id, nombre, email) VALUES(%s, %s, %s)', (id, nombre, email,))
+        coneccion.commit()
+        return True
+    finally:
+
+        cursor.close()
+        coneccion.close()
