@@ -212,5 +212,13 @@ def reemplazar_usuario(id):
         else:
             return jsonify('No se pudo crear el usuario'), 500
 
+@app.route('/usuarios/<int:id>', methods=['DELETE'])
+def delete_usuario(id):
+    borrado = db.delete_usuario(id)
+    if borrado:
+        return jsonify("Usuario eliminado correctamente"),201
+    else:
+        return jsonify({'error': 'No se encuentra el usuario'}), 404
+
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  
