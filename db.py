@@ -52,7 +52,7 @@ def delete_partido_por_id(id):
     finally:
         cursor.close()
         coneccion.close()  
-  
+
 def crear_partido(equipo_local, equipo_visitante,fecha, fase):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
@@ -124,3 +124,69 @@ def actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fe
         coneccion.close()
 
 
+def hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try:
+        # Buscar partido
+        cursor.execute("SELECT id FROM partidos WHERE id = %s", (partido_id,))
+        partido = cursor.fetchone()
+        if not partido:
+            return False
+        
+        # Buscar usuario
+        cursor.execute("SELECT id FROM usuarios WHERE id = %s", (usuario_id,))
+        usuario = cursor.fetchone()
+        if not usuario:
+            return False
+        
+        # cursor.execute("SELECT  goles_visitante goles_local FROM resultados WHERE goles_visitante IS NULL or goles_local IS NULL")
+        # se refiere a resultados, pero primero hay que hacer el cambio de los goles, agregarlos a la tabla partidos.
+
+        cursor.execute("SELECT usuario_id FROM predicciones WHERE usuario_id = %s AND partido_id = %s", (usuario_id, partido_id))
+        prediccion_hecha = cursor.fetchone()
+        if prediccion_hecha:
+            return False, 'No se puede hacer mas de una prediccion por partido.', 400   #esto esta para probar, no sabemos si se puede devolver todo esto.
+
+        cursor.execute('INSERT INTO predicciones (usuario_id, partido_id, goles_local, goles_visitante) VALUES(%s, %s, %s, %s)', (usuario_id, partido_id, goles_local, goles_visitante))
+        coneccion.commit()
+        return True
+    finally:
+            cursor.close()
+            coneccion.close()
+
+def crear_usuario(nombre, email):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    try:
+        cursor.execute('INSERT INTO usuarios (nombre, email) VALUES(%s, %s)', (nombre, email,))
+        coneccion.commit()
+        return True
+    finally:
+            cursor.close()
+            coneccion.close()
+
+def obtener_usuario_por_id(id):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try:
+        cursor.execute('SELECT id FROM usuarios WHERE id = %s', (id,))
+        return cursor.fetchone()
+    finally:
+        cursor.close()
+        coneccion.close()
+
+def crear_usuario_por_id(id, nombre, email):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try:
+        cursor.execute('INSERT INTO usuarios (id, nombre, email) VALUES(%s, %s, %s)', (id, nombre, email,))
+        coneccion.commit()
+        return True
+    finally:
+
+        cursor.close()
+        coneccion.close()

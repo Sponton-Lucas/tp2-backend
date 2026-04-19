@@ -121,5 +121,60 @@ def patch_partidos(id):
         return jsonify({'error': 'no se pudo actualizar el partido'}), 404
 
 
+@app.route('/partidos/<int:id>/prediccion', methods=['POST'])
+def post_prediccion():
+    prediccion = request.get_json()
+    if (not prediccion) or ("usuario_id" not in prediccion) or ("partido_id" not in prediccion) or ("goles_visitante" not in prediccion) or ("goles_local" not in prediccion):
+        return jsonify({'error': 'Esta faltando datos para hacer la predicción.'}), 400
+    else:
+        usuario_id = prediccion.get("usuario_id")
+        partido_id = prediccion.get("partido_id")
+        goles_local = prediccion.get("goles_local")
+        goles_visitante = prediccion.get("goles_visitante")
+
+        if (goles_local or goles_visitante) < 0:
+            return jsonify ({'error': 'Los goles no pueden ser negativos.'}), 400
+
+        prediccion_hecha = db.hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante)
+        if prediccion_hecha:
+            return jsonify({'message': 'Predicción creada correctamente.'}), 201
+        else:
+            return jsonify({'error': 'No se pudo crear la predicción (verificar si el partido o el usuario existe)'}), 400
+
+@app.route('/usuarios', methods=['POST'])
+def post_usuario():
+    usuario = request.get_json()
+    if (not usuario) or ("nombre" not in usuario) or ("email" not in usuario):
+        return jsonify({'error': 'Algo falta'}), 400
+    else:
+        nombre = usuario.get("nombre")
+        email = usuario.get("email")
+        usuario_nuevo = db.crear_usuario(nombre, email)
+        if usuario_nuevo:
+            return jsonify({'message': 'usuario creado'}), 201
+        else:
+            return jsonify({'error': 'no se pudo crea el usuario'}), 400
+
+
+@app.route('/usuarios/<int:id>', methods = ['PUT'])
+def reemplazar_usuario(id):
+    reemplazo_usuario = request.get_json()
+
+    if (not reemplazo_usuario) or ("nombre" not in reemplazo_usuario) or ("email" not in reemplazo_usuario):
+        return jsonify({'error':'datos incorrectos, ingrese de nuevo'}), 400
+
+    nombre = reemplazo_usuario.get("nombre")
+    email = reemplazo_usuario.get("email")
+
+    usuario_existente = db.obtener_usuario_por_id(id)
+
+    if usuario_existente:
+        return jsonify({'error':'el nombre y email, estan en uso, ingrese otros datos no existentes'}), 409
+
+    usuario_nuevo = db.crear_usuario_por_id(id, nombre, email)
+
+    if usuario_nuevo: 
+        return jsonify('Usuario creado con exito'), 201
+
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  
