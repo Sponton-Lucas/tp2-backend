@@ -122,13 +122,13 @@ def patch_partidos(id):
 
 
 @app.route('/partidos/<int:id>/prediccion', methods=['POST'])
-def post_prediccion():
+def post_prediccion(id):
     prediccion = request.get_json()
-    if (not prediccion) or ("usuario_id" not in prediccion) or ("partido_id" not in prediccion) or ("goles_visitante" not in prediccion) or ("goles_local" not in prediccion):
+    if (not prediccion) or ("usuario_id" not in prediccion) or ("goles_visitante" not in prediccion) or ("goles_local" not in prediccion):
         return jsonify({'error': 'Esta faltando datos para hacer la predicción.'}), 400
     else:
         usuario_id = prediccion.get("usuario_id")
-        partido_id = prediccion.get("partido_id")
+        partido_id = id
         goles_local = prediccion.get("goles_local")
         goles_visitante = prediccion.get("goles_visitante")
 
