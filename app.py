@@ -73,7 +73,7 @@ def post_partido():
             return jsonify({'error': 'no se pudo crea el partido'}), 400
 
 @app.route('/partidos/<int:id>/resultado', methods=['PUT'])
-def put_partidos(id):
+def put_partidos_resultado(id):
     resultado = request.get_json()
     if (not resultado) or ("goles_visitante" not in resultado) or ("goles_local" not in resultado):
         return jsonify({'error': 'Algo falta'}), 400
@@ -91,7 +91,7 @@ def put_partidos(id):
             return jsonify({'error': 'No se encuentra el partido para actualizar'}), 404
 
 @app.route('/partidos/<int:id>', methods=['PUT'])
-def put_partidos_resultado(id):
+def put_partidos(id):
     partido = request.get_json()
     if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
         return jsonify({'error': 'Algo falta'}), 400

@@ -3,7 +3,7 @@ import mysql.connector
 db_config = {
     'host':'localhost',
     'user':'root',
-    'password':'',
+    'password':'1234',
     'database':'tp2_db'
 }
 
