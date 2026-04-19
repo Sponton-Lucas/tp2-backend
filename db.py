@@ -173,7 +173,9 @@ def obtener_usuario_por_id(id):
 
     try:
         cursor.execute('SELECT id FROM usuarios WHERE id = %s', (id,))
-        return cursor.fetchone()
+        id_repetido = cursor.fetchone()
+        if id_repetido:
+            return True
     finally:
         cursor.close()
         coneccion.close()
@@ -190,4 +192,3 @@ def crear_usuario_por_id(id, nombre, email):
 
         cursor.close()
         coneccion.close()
-        
