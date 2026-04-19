@@ -214,6 +214,7 @@ def crear_usuario_por_id(nombre, email, id):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
 
+
     try:
         cursor.execute('INSERT INTO usuarios (nombre, email, id) VALUES(%s, %s, %s)', (nombre, email, id,))
         coneccion.commit()
