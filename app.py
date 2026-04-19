@@ -80,6 +80,8 @@ def put_partidos_resultado(id):
     else:
         goles_visitante = resultado.get("goles_visitante")
         goles_local = resultado.get("goles_local")
+        if goles_local == "" or goles_visitante == "":
+            return jsonify({'error': 'Debe ingresar goles de visitante y local.'}), 400
         
         if goles_local < 0 or goles_visitante < 0:
             return jsonify({'error': 'Los goles no pueden ser negativos'}), 400

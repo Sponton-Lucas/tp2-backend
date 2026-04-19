@@ -72,11 +72,11 @@ def agregar_resultado_por_id(id, goles_local, goles_visitante):
 
     try:
         cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
-        partido = cursor.fetchone()
+        partido = cursor.fetchone() 
         if not partido:
             return False
         else:
-            cursor.execute('INSERT INTO resultados (partido_id, goles_visitante, goles_local) VALUES(%s, %s, %s) ON DUPLICATE KEY UPDATE goles_visitante = VALUES(goles_visitante), goles_local = VALUES(goles_local)', (id_ingresado, goles_visitante, goles_local,))
+            cursor.execute('UPDATE partidos SET goles_local = %s, goles_visitante = %s WHERE id = %s', (goles_local, goles_visitante, id_ingresado))
             coneccion.commit()
             return True
     finally:
@@ -217,3 +217,4 @@ def crear_usuario_por_id(nombre, email, id):
     finally:
         cursor.close()
         coneccion.close() 
+
