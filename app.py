@@ -27,18 +27,19 @@ def get_partidos():
     last_offset = max(0, ((total - 1) // limit) * limit)
 
     respuesta = {
-        'data': partidos,
-        'total': total,
-        '_first': f'/partidos?_limit={limit}&_offset=0{filtros}',
-        '_prev': f'/partidos?_limit={limit}&_offset={max(0, offset - limit)}{filtros}' if offset > 0 else None,
-        '_next': f'/partidos?_limit={limit}&_offset=(min(last_offset, offset + limit)){filtros}' if (offset + limit) < total else None,
-        '_last': f'/partidos?_limit={limit}&_offset={last_offset}{filtros}'
+        'partidos': partidos,
+        "_links": {
+            "_first": {"href": f"/partidos?_limit={limit}&_offset=0{filtros}"},
+            "_prev": {"href": f"/partidos?_limit={limit}&_offset={max(0, offset - limit)}{filtros}"} if offset > 0 else None,
+            "_next": {"href": f"/partidos?_limit={limit}&_offset={min(last_offset, offset + limit)}{filtros}"} if (offset + limit) < total else None,
+            "_last": {"href": f"/partidos?_limit={limit}&_offset={last_offset}{filtros}"}
+        }
     }
 
     if partidos:
-        return jsonify(respuesta)
+        return jsonify(respuesta), 200
     else:
-        return jsonify({'error': 'error'}), 404
+        return '', 204
 
 @app.route('/partidos/<int:id>', methods=['GET'])
 def get_partido(id):
@@ -46,59 +47,143 @@ def get_partido(id):
     if partido:
         return jsonify(partido)
     else:
-        return jsonify({'error': 'Partido no encontrado'}), 404
+        return jsonify({
+            "errors": [
+                {
+                    "code": "404",
+                    "message": "Partido no encontrado",
+                    "level": "error",
+                    "description": f"No existe partido con id {id}"
+                }
+            ]
+        }), 404
 
 @app.route('/partidos/<int:id>', methods=['DELETE'])
 def delete_partido(id):
     borrado = db.delete_partido_por_id(id)
     if borrado:
-        return jsonify({'mensaje': 'partido borrado'}), 200
+        return '', 204
     else:
-        return jsonify({'error': 'No se encuentra el partido'}), 404
+        return jsonify({
+        "errors": [
+            {
+                "code": "404",
+                "message": "Partido no encontrado",
+                "level": "error",
+                "description": f"No existe partido con id {id}"
+            }
+        ]
+    }), 404
 
 @app.route('/partidos', methods=['POST'])
 def post_partido():
     partido = request.get_json()
-    if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
-        return jsonify({'error': 'Algo falta'}), 400    
+    if not partido:
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Body vacio o invalido"
+            }]
+        }), 400
+    if ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Faltan campos obligatorios"
+            }]
+        }), 400    
     else:
         equipo_local = partido.get("equipo_local")
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
         if (not equipo_local) or (not equipo_visitante) or (not fecha) or (not fase):
-            return jsonify({'error': 'No podes mandar parametros vacios'}) 
+            return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Los campos no pueden /ser vacios"
+            }]
+        }), 400
         partido_nuevo = db.crear_partido(equipo_local, equipo_visitante,fecha, fase)
         if partido_nuevo:
-            return jsonify({'message': 'partido creado'}), 201
+            return '', 201
         else:
-            return jsonify({'error': 'no se pudo crea el partido'}), 400
+            return jsonify({
+                "errors": [{
+                    "code": "409",
+                    "message": "Conflict",
+                    "level": "error",
+                    "description": "No se pudo crear el partido"
+                }]
+            }), 400
 
 @app.route('/partidos/<int:id>/resultado', methods=['PUT'])
 def put_partidos_resultado(id):
     resultado = request.get_json()
     if (not resultado) or ("goles_visitante" not in resultado) or ("goles_local" not in resultado):
-        return jsonify({'error': 'Algo falta'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Faltan goles_local o goles_visitante"
+            }]
+        }), 400
     else:
         goles_visitante = resultado.get("goles_visitante")
         goles_local = resultado.get("goles_local")
         if goles_local == "" or goles_visitante == "":
-            return jsonify({'error': 'Debe ingresar goles de visitante y local.'}), 400
+            return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Los goles no pueden ser nulos"
+            }]
+        }), 400
         
         if goles_local < 0 or goles_visitante < 0:
-            return jsonify({'error': 'Los goles no pueden ser negativos'}), 400
+            return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Los goles no pueden ser negativos"
+            }]
+        }), 400
+
         resultado = db.agregar_resultado_por_id(id, goles_local, goles_visitante)
 
         if resultado:
-            return jsonify({'mensaje': 'resultado cargado'}), 200
+             return '', 204
         else:
-            return jsonify({'error': 'No se encuentra el partido para actualizar'}), 404
+            return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": "No existe el partido"
+            }]
+        }), 404
 
 @app.route('/partidos/<int:id>', methods=['PUT'])
 def put_partidos(id):
     partido = request.get_json()
     if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
-        return jsonify({'error': 'Algo falta'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Faltan campos obligatorios"
+            }]
+        }), 400
     else:
         equipo_local = partido.get("equipo_local")
         equipo_visitante = partido.get("equipo_visitante")
@@ -106,9 +191,16 @@ def put_partidos(id):
         fase = partido.get("fase")
         actualizar_partido = db.actualizar_partido_por_id(id, equipo_local, equipo_visitante,fecha, fase)
         if actualizar_partido:
-            return jsonify({'message': 'partido actualizado'}), 201
+            return '', 204
         else:
-            return jsonify({'error': 'no se pudo actualizar el partido'}), 404
+            return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": f"No existe partido con id {id}"
+            }]
+        }), 404
 
 
 @app.route('/partidos/<int:id>', methods=['PATCH'])
@@ -119,29 +211,71 @@ def patch_partidos(id):
     fecha = partido.get("fecha")
     fase = partido.get("fase")
     if equipo_local is not None and not equipo_local.strip():
-        return jsonify({'error': 'equipo_local no puede estar vacio'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "equipo_local no puede estar vacío"
+            }]
+        }), 400
 
     if equipo_visitante is not None and not equipo_visitante.strip():
-        return jsonify({'error': 'equipo_visitante no puede estar vacio'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "equipo_visitante no puede estar vacio"
+            }]
+        }), 400
 
     if fecha is not None and not fecha.strip():
-        return jsonify({'error': 'fecha no puede estar vacia'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "fecha no puede estar vacio"
+            }]
+        }), 400
 
     if fase is not None and not fase.strip():
-        return jsonify({'error': 'fase no puede estar vacia'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "fase no puede estar vacia"
+            }]
+        }), 400
 
     actualizar_partido_parcialmente = db.actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fecha, fase)
     if actualizar_partido_parcialmente:
-        return jsonify({'message': 'partido actualizado parcialmente'}), 201
+        return '', 204
     else:
-        return jsonify({'error': 'no se pudo actualizar el partido'}), 404
+        return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": f"No existe partido con id {id}"
+            }]
+        }), 404
 
 
 @app.route('/partidos/<int:id>/prediccion', methods=['POST'])
 def post_prediccion(id):
     prediccion = request.get_json()
     if (not prediccion) or ("usuario_id" not in prediccion) or ("goles_visitante" not in prediccion) or ("goles_local" not in prediccion):
-        return jsonify({'error': 'Esta faltando datos para hacer la predicción.'}), 400
+         return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Faltan campos obligatorios"
+            }]
+        }), 400
     else:
         usuario_id = prediccion.get("usuario_id")
         partido_id = id
@@ -152,37 +286,86 @@ def post_prediccion(id):
         return jsonify({'error': 'Faltan datos de goles.'}), 400
 
     if goles_local < 0 or goles_visitante < 0:
-            return jsonify({'error': 'Los goles no pueden ser negativos.'}), 400 #bien
+            return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Los goles no pueden ser negativos"
+            }]
+        }), 400
 
-    partido = db.get_partido_por_id(partido_id) #devuelve diccionario
+    partido = db.get_partido_por_id(partido_id) 
     if not partido:            
-        return jsonify({'error': 'El partido no existe.'}), 404
+        return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": "El partido no existe"
+            }]
+        }), 404
     if (partido['goles_local'] is not None) and (partido['goles_visitante'] is not None):
-       return jsonify({'error': 'El partido ya se jugo.'}), 400
+       return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "El partido ya se jugó"
+            }]
+        }), 400
         
     usuario = db.obtener_usuario_por_id(usuario_id)
     if not usuario:
-        return jsonify({'error': 'El usuario no existe.'}), 404
+        return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": "El usuario no existe"
+            }]
+        }), 404
 
     prediccion_hecha = db.hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante)
     if prediccion_hecha:
-        return jsonify({'message': 'Predicción creada correctamente.'}), 201
+         return '', 201
     else:
-        return jsonify({'error': 'Ya hiciste una prediccion para este partido.'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "409",
+                "message": "Conflict",
+                "level": "error",
+                "description": "Ya existe una prediccion para este usuario y partido"
+            }]
+        }), 400
 
 @app.route('/usuarios', methods=['POST'])
 def post_usuario():
     usuario = request.get_json()
     if (not usuario) or ("nombre" not in usuario) or ("email" not in usuario):
-        return jsonify({'error': 'Algo falta'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "Faltan campos obligatorios"
+            }]
+        }), 400
     else:
         nombre = usuario.get("nombre")
         email = usuario.get("email")
         usuario_nuevo = db.crear_usuario(nombre, email)
         if usuario_nuevo:
-            return jsonify({'message': 'usuario creado'}), 201
+            return '', 201
         else:
-            return jsonify({'error': 'no se pudo crea el usuario'}), 400
+            return jsonify({
+            "errors": [{
+                "code": "409",
+                "message": "Conflict",
+                "level": "error",
+                "description": "No se pudo crear el usuario"
+            }]
+        }), 400
 
 @app.route('/usuarios', methods=['GET']) 
 def get_usuarios():
@@ -194,12 +377,14 @@ def get_usuarios():
     last_offset = max(0, ((total - 1) // limit) * limit)
 
     respuesta = {
-        'data': usuarios,
+        'usuarios': usuarios,
         'total': total,
-        '_first': f'/usuarios?_limit={limit}&_offset=0',
-        '_prev': f'/usuarios?_limit={limit}&_offset={max(0, offset - limit)}' if offset > 0 else None,
-        '_next': f'/usuarios?_limit={limit}&_offset={min(last_offset, offset + limit)}' if (offset + limit) < total else None,
-        '_last': f'/usuarios?_limit={limit}&_offset={last_offset}'
+        '_links': {
+            '_first': f'/usuarios?_limit={limit}&_offset=0',
+            '_prev': f'/usuarios?_limit={limit}&_offset={max(0, offset - limit)}' if offset > 0 else None,
+            '_next': f'/usuarios?_limit={limit}&_offset={min(last_offset, offset + limit)}' if (offset + limit) < total else None,
+            '_last': f'/usuarios?_limit={limit}&_offset={last_offset}'
+        }
     }
 
     return jsonify(respuesta)
@@ -210,14 +395,28 @@ def get_usuario_por_id(id):
     if id_usuarios:
         return jsonify(id_usuarios)
     else:
-        return jsonify({'error': 'usuario no encontrado'}), 404
+        return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": f"No existe usuario con id {id}"
+            }]
+        }), 404
 
 @app.route('/usuarios/<int:id>', methods = ['PUT'])
 def reemplazar_usuario(id):
     reemplazo_usuario = request.get_json()
 
     if (not reemplazo_usuario) or ("nombre" not in reemplazo_usuario) or ("email" not in reemplazo_usuario):
-        return jsonify({'error':'datos incorrectos, ingrese de nuevo'}), 400
+        return jsonify({
+            "errors": [{
+                "code": "400",
+                "message": "Bad Request",
+                "level": "error",
+                "description": "datos incorrectos"
+            }]
+        }), 400
 
     nombre = reemplazo_usuario.get("nombre")
     email = reemplazo_usuario.get("email")
@@ -227,7 +426,7 @@ def reemplazar_usuario(id):
     if usuario_existente:
         actualizado = db.actualizar_usuario_por_id(nombre, email, id)
         if actualizado:
-            return jsonify({'message':'Se actualizo el usuario'}), 201
+             return '', 204
         else:
             return jsonify({'error':'No se pudo actualizar el usuario'}), 500
     else: 
@@ -241,9 +440,16 @@ def reemplazar_usuario(id):
 def delete_usuario(id):
     borrado = db.delete_usuario(id)
     if borrado:
-        return jsonify({'message':"Usuario eliminado correctamente"}),201
+        return '', 204
     else:
-        return jsonify({'error': 'No se encuentra el usuario'}), 404
+        return jsonify({
+            "errors": [{
+                "code": "404",
+                "message": "Not Found",
+                "level": "error",
+                "description": f"No existe usuario con id {id}"
+            }]
+        }), 404
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  
