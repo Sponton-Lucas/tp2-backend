@@ -60,12 +60,14 @@ def delete_partido(id):
 def post_partido():
     partido = request.get_json()
     if (not partido) or ("equipo_local" not in partido) or ("equipo_visitante" not in partido) or ("fecha" not in partido) or ("fase" not in partido):
-        return jsonify({'error': 'Algo falta'}), 400
+        return jsonify({'error': 'Algo falta'}), 400    
     else:
         equipo_local = partido.get("equipo_local")
         equipo_visitante = partido.get("equipo_visitante")
         fecha = partido.get("fecha")
         fase = partido.get("fase")
+        if (not equipo_local) or (not equipo_visitante) or (not fecha) or (not fase):
+            return jsonify({'error': 'No podes mandar parametros vacios'}) 
         partido_nuevo = db.crear_partido(equipo_local, equipo_visitante,fecha, fase)
         if partido_nuevo:
             return jsonify({'message': 'partido creado'}), 201
@@ -80,6 +82,8 @@ def put_partidos_resultado(id):
     else:
         goles_visitante = resultado.get("goles_visitante")
         goles_local = resultado.get("goles_local")
+        if goles_local == "" or goles_visitante == "":
+            return jsonify({'error': 'Debe ingresar goles de visitante y local.'}), 400
         
         if goles_local < 0 or goles_visitante < 0:
             return jsonify({'error': 'Los goles no pueden ser negativos'}), 400
@@ -114,6 +118,18 @@ def patch_partidos(id):
     equipo_visitante = partido.get("equipo_visitante")
     fecha = partido.get("fecha")
     fase = partido.get("fase")
+    if equipo_local is not None and not equipo_local.strip():
+        return jsonify({'error': 'equipo_local no puede estar vacio'}), 400
+
+    if equipo_visitante is not None and not equipo_visitante.strip():
+        return jsonify({'error': 'equipo_visitante no puede estar vacio'}), 400
+
+    if fecha is not None and not fecha.strip():
+        return jsonify({'error': 'fecha no puede estar vacia'}), 400
+
+    if fase is not None and not fase.strip():
+        return jsonify({'error': 'fase no puede estar vacia'}), 400
+
     actualizar_partido_parcialmente = db.actualizar_partido_parcialmente_por_id(id, equipo_local, equipo_visitante,fecha, fase)
     if actualizar_partido_parcialmente:
         return jsonify({'message': 'partido actualizado parcialmente'}), 201
@@ -168,13 +184,25 @@ def post_usuario():
         else:
             return jsonify({'error': 'no se pudo crea el usuario'}), 400
 
-@app.route('/usuarios', methods=['GET']) #falta paginacion
+@app.route('/usuarios', methods=['GET']) 
 def get_usuarios():
-    usuarios = db.obtener_usuarios()
-    if usuarios:
-        return jsonify(usuarios)
-    else:
-        return jsonify({'error': 'No existe la tabla'}), 404
+    limit = int(request.args.get('_limit', 10))
+    offset = int(request.args.get('_offset', 0))
+
+    usuarios, total = db.obtener_usuarios(limit, offset)
+
+    last_offset = max(0, ((total - 1) // limit) * limit)
+
+    respuesta = {
+        'data': usuarios,
+        'total': total,
+        '_first': f'/usuarios?_limit={limit}&_offset=0',
+        '_prev': f'/usuarios?_limit={limit}&_offset={max(0, offset - limit)}' if offset > 0 else None,
+        '_next': f'/usuarios?_limit={limit}&_offset={min(last_offset, offset + limit)}' if (offset + limit) < total else None,
+        '_last': f'/usuarios?_limit={limit}&_offset={last_offset}'
+    }
+
+    return jsonify(respuesta)
     
 @app.route('/usuarios/<int:id>', methods=['GET'])
 def get_usuario_por_id(id):
@@ -199,15 +227,23 @@ def reemplazar_usuario(id):
     if usuario_existente:
         actualizado = db.actualizar_usuario_por_id(nombre, email, id)
         if actualizado:
-            return jsonify('Se actualizo el usuario'), 201
+            return jsonify({'message':'Se actualizo el usuario'}), 201
         else:
-            return jsonify('No se pudo actualizar el usuario'), 500
+            return jsonify({'error':'No se pudo actualizar el usuario'}), 500
     else: 
         usuario_nuevo = db.crear_usuario_por_id(nombre, email, id)
         if usuario_nuevo:
-            return jsonify('Se creo el usuario'), 201
+            return jsonify({'message':'Se creo el usuario'}), 201
         else:
-            return jsonify('No se pudo crear el usuario'), 500
+            return jsonify({'error':'No se pudo crear el usuario'}), 500
+
+@app.route('/usuarios/<int:id>', methods=['DELETE'])
+def delete_usuario(id):
+    borrado = db.delete_usuario(id)
+    if borrado:
+        return jsonify({'message':"Usuario eliminado correctamente"}),201
+    else:
+        return jsonify({'error': 'No se encuentra el usuario'}), 404
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  

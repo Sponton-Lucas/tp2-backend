@@ -46,9 +46,9 @@ def delete_partido_por_id(id):
     cursor = coneccion.cursor(dictionary=True)
     
     try:
-        cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))
-        partido = cursor.fetchone()
-        if not partido:
+        cursor.execute('SELECT * FROM partidos WHERE id = %s', (id_ingresado,))
+        existe_partido = cursor.fetchone()
+        if not existe_partido:
             return False
         cursor.execute('DELETE FROM partidos WHERE id = %s', (id_ingresado,))
         coneccion.commit()
@@ -76,11 +76,11 @@ def agregar_resultado_por_id(id, goles_local, goles_visitante):
 
     try:
         cursor.execute('SELECT id FROM partidos WHERE id = %s', (id_ingresado,))    
-        partido = cursor.fetchone()
+        partido = cursor.fetchone() 
         if not partido:
             return False
         else:
-            cursor.execute('UPDATE partidos SET goles_local = %s, goles_visitante = %s WHERE id = %s', (goles_local, goles_visitante, id_ingresado,))
+            cursor.execute('UPDATE partidos SET goles_local = %s, goles_visitante = %s WHERE id = %s', (goles_local, goles_visitante, id_ingresado))
             coneccion.commit()
             return True
     finally:
@@ -156,14 +156,19 @@ def crear_usuario(nombre, email):
             cursor.close()
             coneccion.close()
 
-def obtener_usuarios():
+def obtener_usuarios(limit, offset):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
-    
+
     try:
-        cursor.execute('SELECT * FROM usuarios')
-        todos_usuarios = cursor.fetchall()
-        return todos_usuarios
+        cursor.execute('SELECT COUNT(*) as total FROM usuarios')
+        total = cursor.fetchone()['total']
+
+        cursor.execute('SELECT * FROM usuarios LIMIT %s OFFSET %s', (limit, offset))
+        usuarios = cursor.fetchall()
+
+        return usuarios, total
+
     finally:
         cursor.close()
         coneccion.close()
@@ -199,6 +204,7 @@ def crear_usuario_por_id(nombre, email, id):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
 
+
     try:
         cursor.execute('INSERT INTO usuarios (nombre, email, id) VALUES(%s, %s, %s)', (nombre, email, id,))
         coneccion.commit()
@@ -206,3 +212,22 @@ def crear_usuario_por_id(nombre, email, id):
     finally:
         cursor.close()
         coneccion.close() 
+
+def delete_usuario (usuario_id):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try :
+        cursor.execute('DELETE FROM predicciones WHERE id = %s', (usuario_id,))
+        cursor.execute('DELETE FROM usuarios WHERE id = %s', (usuario_id,))
+        filas_afectadas = cursor.rowcount
+        coneccion.commit()
+
+        return filas_afectadas > 0
+
+    except Exception as e:
+        print(f"Error al eliminar usuario: {e}")
+        return False
+    finally:
+           cursor.close()
+           coneccion.close()
