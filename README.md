@@ -1,11 +1,23 @@
 # Proyecto Flask - TP NRO 2 - BACKEND
-
+## GRUPO: Caida del Siu
 Este proyecto utiliza **Flask** como framework principal para desarrollo web.  
+
+**Integrantes**
+- Lucas Sponton
+- Mia Torres
+- Ivan Nolasco
+- Thomas Alabart
+- Sofia Ramirez
+- Agustin Antonic
+- Silvana Romero
+- Alejandro Daniel Pinto
 
 ---
 
 ## 🚀 Requisitos previos
+
 - Python 3.x instalado
+- MySQL instalado y corriendo en localhost
 - Git instalado
 - (Opcional) VS Code como editor
 
@@ -33,21 +45,67 @@ Este proyecto utiliza **Flask** como framework principal para desarrollo web.
 
 ---
 
-# Guía rápida de pruebas API de Partidos
 
-Te documentamos cómo probar los endpoints de la API de partidos usando curl desde la terminal.
+## ⚙️ Configuración de la base de datos
 
-## 📌 Endpoints disponibles
+1. **Entrar a MySql como root:**
+   ```bash
+   mysql -u root -p
+   ```
+2. **Crear la base de datos:**
+   ```Sql
+   CREATE DATABASE tp2_db;
+   ```
+3. **Crear el usuario del proyecto:**
+   ```Sql
+   CREATE USER 'caidaSiu'@'localhost' IDENTIFIED BY '1234';
+   GRANT ALL PRIVILEGES ON tp2_db.* TO 'caidaSiu'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+4. **Importar el esquema desde el archivo .sql:
+- Primero debe pararse sobre la carpeta del repo en una terminal y luego ejecutar el comando siguiente:
+   ```bash
+   cd tp2-back-end   # entrar al repo clonado
+   mysql -u caidaSiu -p tp2_db < data/archivo.sql
+   ```
 
-- GET /partidos → Lista todos los partidos.
-
-- GET /partidos/<id> → Muestra un partido específico.
-
-- POST /partidos → Crea un nuevo partido.
-
-- DELETE /partidos/<id> → Elimina un partido por ID.
+## ▶️ Levantar la API.
+   ```bash
+   python3 app.py
+   ```
+- La API corre en http://127.0.0.1:5000/.
 
 ---
+
+## 📌 Endpoints principales
+
+*Partidos*
+
+- GET /partidos → Lista todos los partidos (con filtros por equipo, fecha, fase y paginación con _limit y _offset).
+- GET /partidos/<id> → Muestra un partido específico.
+- POST /partidos → Crea un nuevo partido.
+- PUT /partidos/<id> → Reemplaza un partido completo.
+- PATCH /partidos/<id> → Actualiza parcialmente un partido.
+- DELETE /partidos/<id> → Elimina un partido por ID.
+- PUT /partidos/<id>/resultado → Carga o reemplaza el resultado de un partido.
+- POST /partidos/<id>/prediccion → Crea una predicción de un usuario para un partido.
+
+*Usuarios*
+
+- GET /usuarios → Lista todos los usuarios (con paginación con _limit y _offset).
+- GET /usuarios/<id> → Muestra un usuario específico.
+- POST /usuarios → Crea un nuevo usuario.
+- PUT /usuarios/<id> → Reemplaza un usuario (si no existe, lo crea).
+- DELETE /usuarios/<id> → Elimina un usuario por ID.
+
+*Ranking*
+
+- GET /ranking → Lista las predicciones de usuarios por puntaje (con paginación con _limit y _offset).
+
+---
+
+# Guía rápida de pruebas API de Partidos
+Te documentamos cómo probar los endpoints de la API de partidos usando curl desde la terminal.
 
 ## 🔹 Pruebas con curl
 
@@ -55,56 +113,97 @@ Te documentamos cómo probar los endpoints de la API de partidos usando curl des
 ```bash
 curl http://127.0.0.1:5000/partidos
 ```
-2. **Ver detalle de un partido**
+2. **Filtrar por categoria**
 ```bash
-curl http://127.0.0.1:5000/partidos/1
+curl "http://127.0.0.1:5000/partidos?equipo=Boca Juniors" #Filtrar por equipo.
+curl "http://127.0.0.1:5000/partidos?fecha=2025-08-19"     #Filtrar por fecha.
+curl "http://127.0.0.1:5000/partidos?fase=cuartos"              #Filtrar por fase.
+curl "http://127.0.0.1:5000/partidos?equipo=River Plate&fecha=2025-06-17&fase=grupos" #Filtrar por mas de una categoria.
 ```
-3. **Crear un partido (POST)**
+3. **Ver detalle de un partido**
 ```bash
-curl -X POST http://127.0.0.1:5000/partidos \
-     -H "Content-Type: application/json" \
-     -d '{"equipo_local":"Brasil","equipo_visitante":"Chile","fecha":"2026-06-15","fase":"grupos","estadio":"Maracaná","ciudad":"Rio de Janeiro"}'
+curl http://127.0.0.1:5000/partidos/1  #Mostrar el partido, por su ID,  que se quiere detallar.
 ```
-- *➡️ Si no se envían estadio y ciudad, se guardan vacíos:*
+4. **Crear un partido**
 ```bash
 curl -X POST http://127.0.0.1:5000/partidos \
      -H "Content-Type: application/json" \
      -d '{"equipo_local":"Brasil","equipo_visitante":"Chile","fecha":"2026-06-15","fase":"grupos"}'
 ```
-4. **Eliminar un partido por su ID (DELETE)**
+- *➡️ Los goles local y de visitante se pasaran mediante el endpoint con PUT*
+
+5. **Cargar resultado**
+```bash
+curl -X PUT http://127.0.0.1:5000/partidos/1/resultado \
+     -H "Content-Type: application/json" \
+     -d '{"goles_local":2,"goles_visitante":1}'
+```
+6. **Crear predicción**
+```bash
+curl -X POST http://127.0.0.1:5000/partidos/1/prediccion \
+     -H "Content-Type: application/json" \
+     -d '{
+           "usuario_id": 1,
+           "goles_local": 2,
+           "goles_visitante": 1
+         }'
+```
+7. **Actualizar un partido**
+```bash
+curl -X PATCH http://127.0.0.1:5000/partidos/1 \
+     -H "Content-Type: application/json" \
+     -d '{
+           "equipo_local": "Argentina",
+           "equipo_visitante": "Brasil",
+           "fecha":"2025-08-17",
+           "fase": "semifinal"
+         }'
+```
+8. **Reemplazar un partido**
+```bash
+curl -X PUT http://127.0.0.1:5000/partidos/1 \
+     -H "Content-Type: application/json" \
+     -d '{
+           "equipo_local": "Argentina",
+           "equipo_visitante": "Brasil",
+           "fecha": "2026-07-01",
+           "fase": "final"
+         }'
+```
+9. **Eliminar un partido por su ID**
 ```bash
 curl -X DELETE http://127.0.0.1:5000/partidos/2
-```
-- *Si existe, devuelve:*
-```bash
-{"mensaje": "partido borrado"}
-```
-- *Si no existe, devuelve:*
-```bash
-{"error": "No se encuentra el partido"}
 ```
 
 ---
 
 ## 🔹 Pruebas con Postman
 
-1. Abrí Postman y hacé click en **+** para una nueva request
+### Abrí Postman y hacé click en **+** para una nueva request
 
 ### 1. Listar todos los partidos
 - Método: `GET`
 - URL: `http://127.0.0.1:5000/partidos`
 - Click en **Send**
 
-### 2. Ver detalle de un partido
+### 2. Filtrar partidos
+- Método: GET
+- URL:
+   - http://127.0.0.1:5000/partidos?equipo=Boca Juniors
+   - http://127.0.0.1:5000/partidos?fecha=2025-08-19
+   - http://127.0.0.1:5000/partidos?fase=cuartos
+   - http://127.0.0.1:5000/partidos?equipo=River Plate&fecha=2025-06-17&fase=grupos
+   - Click en Send
+
+### 3. Ver detalle de un partido
 - Método: `GET`
 - URL: `http://127.0.0.1:5000/partidos/1`
 - Click en **Send**
 
-### 3. Crear un partido (POST)
+### 4. Crear un partido
 - Método: `POST`
 - URL: `http://127.0.0.1:5000/partidos`
 - Ir a **Body** → seleccionar **raw** → elegir **JSON**
-- Pegar esto en el body:
 ```json
 {
   "equipo_local": "Brasil",
@@ -115,7 +214,61 @@ curl -X DELETE http://127.0.0.1:5000/partidos/2
 ```
 - Click en **Send**
 
-### 4. Eliminar un partido (DELETE)
+### 5. Cargar resultado
+- Método: PUT
+- URL: http://127.0.0.1:5000/partidos/1/resultado
+- Ir a **Body** →seleccionar **raw** → elegir **JSON**
+```json
+{
+  "goles_local": 2,
+  "goles_visitante": 1
+}
+```
+- Click en **Send**
+
+### 6. Crear predicción
+- Método: POST
+- URL: http://127.0.0.1:5000/partidos/1/prediccion
+- Ir a **Body** →seleccionar **raw** → elegir **JSON**
+```json
+{
+  "usuario_id": 1,
+  "goles_local": 2,
+  "goles_visitante": 1
+}
+```
+- Click en **Send**
+
+### 7. Actualizar un partido
+- Método: PATCH
+- URL: http://127.0.0.1:5000/partidos/1
+- Ir a **Body** →seleccionar **raw** → elegir **JSON**
+```json
+{
+  "equipo_local": "Argentina",
+  "equipo_visitante": "Brasil",
+  "fecha": "2025-08-17",
+  "fase": "semifinal"
+}
+```
+- Click en **Send**
+
+### 8. Reemplazar un partido
+- Método: PUT
+- URL: http://127.0.0.1:5000/partidos/1
+- Ir a **Body** →seleccionar **raw** → elegir **JSON**
+```json
+{
+  "equipo_local": "Argentina",
+  "equipo_visitante": "Brasil",
+  "fecha": "2026-07-01",
+  "fase": "final"
+}
+```
+- Click en **Send**
+
+
+### 4. Eliminar un partido
 - Método: `DELETE`
 - URL: `http://127.0.0.1:5000/partidos/2`
 - Click en **Send**
@@ -123,8 +276,6 @@ curl -X DELETE http://127.0.0.1:5000/partidos/2
 ---
 
 ## 📂 Verificación
-
-- Revisar el archivo data/partidos.csv para confirmar que los cambios se reflejan.
 
 - Usar GET /partidos después de un POST o DELETE para validar que el partido se agregó o eliminó correctamente.
 
