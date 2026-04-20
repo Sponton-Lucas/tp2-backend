@@ -171,7 +171,7 @@ def post_usuario():
         else:
             return jsonify({'error': 'no se pudo crea el usuario'}), 400
 
-@app.route('/usuarios', methods=['GET']) #falta paginacion
+@app.route('/usuarios', methods=['GET']) 
 def get_usuarios():
     limit = int(request.args.get('_limit', 10))
     offset = int(request.args.get('_offset', 0))
