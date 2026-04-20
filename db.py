@@ -231,3 +231,42 @@ def delete_usuario (usuario_id):
     finally:
            cursor.close()
            coneccion.close()
+
+def get_ranking(limit, offset):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+    try:
+        cursor.execute('''
+            SELECT COUNT(DISTINCT u.id) as total
+            FROM usuarios u
+            JOIN predicciones p ON u.id = p.usuario_id
+            JOIN partidos r ON p.partido_id = r.id
+        ''')
+        total = cursor.fetchone()['total']
+
+        cursor.execute('''
+            SELECT 
+                u.id as usuario_id,
+                u.nombre,
+                SUM(
+                    CASE 
+                        WHEN p.goles_local = r.goles_local 
+                         AND p.goles_visitante = r.goles_visitante THEN 3
+                        WHEN SIGN(p.goles_local - p.goles_visitante) = 
+                             SIGN(r.goles_local - r.goles_visitante) THEN 1
+                        ELSE 0
+                    END
+                ) as puntos
+            FROM usuarios u
+            JOIN predicciones p ON u.id = p.usuario_id
+            JOIN partidos r ON p.partido_id = r.id
+            GROUP BY u.id, u.nombre
+            ORDER BY puntos DESC
+            LIMIT %s OFFSET %s
+        ''', (limit, offset))
+
+        ranking = cursor.fetchall()
+        return ranking, total
+    finally:
+        cursor.close()
+        coneccion.close()

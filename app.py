@@ -244,6 +244,26 @@ def delete_usuario(id):
         return jsonify({'message':"Usuario eliminado correctamente"}),201
     else:
         return jsonify({'error': 'No se encuentra el usuario'}), 404
+    
+@app.route('/ranking', methods=['GET'])
+def get_ranking():
+    limit = int(request.args.get('_limit', 10))
+    offset = int(request.args.get('_offset', 0))
+
+    ranking, total = db.get_ranking(limit, offset)
+
+    last_offset = max(0, ((total - 1) // limit) * limit) if total > 0 else 0
+
+    respuesta = {
+        'data': ranking,
+        'total': total,
+        '_first': f'/ranking?_limit={limit}&_offset=0',
+        '_prev': f'/ranking?_limit={limit}&_offset={max(0, offset - limit)}' if offset > 0 else None,
+        '_next': f'/ranking?_limit={limit}&_offset={min(offset + limit, last_offset)}' if (offset + limit) < total else None,
+        '_last': f'/ranking?_limit={limit}&_offset={last_offset}'
+    }
+
+    return jsonify(respuesta), 200
 
 if __name__ == '__main__':
 	app.run(port=5000, debug=True)  
