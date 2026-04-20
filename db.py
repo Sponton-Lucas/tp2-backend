@@ -228,3 +228,21 @@ def crear_usuario_por_id(nombre, email, id):
         cursor.close()
         coneccion.close() 
 
+def delete_usuario (usuario_id):
+    coneccion = get_db_connection()
+    cursor = coneccion.cursor(dictionary=True)
+
+    try :
+        cursor.execute('DELETE FROM predicciones WHERE id = %s', (usuario_id,))
+        cursor.execute('DELETE FROM usuarios WHERE id = %s', (usuario_id,))
+        filas_afectadas = cursor.rowcount
+        coneccion.commit()
+
+        return filas_afectadas > 0
+
+    except Exception as e:
+        print(f"Error al eliminar usuario: {e}")
+        return False
+    finally:
+           cursor.close()
+           coneccion.close()
