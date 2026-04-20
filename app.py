@@ -132,14 +132,24 @@ def post_prediccion(id):
         goles_local = prediccion.get("goles_local")
         goles_visitante = prediccion.get("goles_visitante")
 
-        if (goles_local or goles_visitante) < 0:
-            return jsonify ({'error': 'Los goles no pueden ser negativos.'}), 400
+    if goles_local < 0 or goles_visitante < 0:
+            return jsonify({'error': 'Los goles no pueden ser negativos.'}), 400 #bien
 
-        prediccion_hecha = db.hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante)
-        if prediccion_hecha:
-            return jsonify({'message': 'Predicción creada correctamente.'}), 201
-        else:
-            return jsonify({'error': 'No se pudo crear la predicción (verificar si el partido o el usuario existe)'}), 400
+    partido = db.get_partido_por_id(partido_id) #devuelve diccionario
+    if not partido:            
+        return jsonify({'error': 'El partido no existe.'}), 404
+    if (partido['goles_local'] is not None) and (partido['goles_visitante'] is not None):
+       return jsonify({'error': 'El partido ya se jugo.'}), 400
+        
+    usuario = db.obtener_usuario_por_id(usuario_id)
+    if not usuario:
+        return jsonify({'error': 'El usuario no existe.'}), 404
+
+    prediccion_hecha = db.hacer_prediccion(usuario_id, partido_id, goles_local, goles_visitante)
+    if prediccion_hecha:
+        return jsonify({'message': 'Predicción creada correctamente.'}), 201
+    else:
+        return jsonify({'error': 'Ya hiciste una prediccion para este partido.'}), 400
 
 @app.route('/usuarios', methods=['POST'])
 def post_usuario():

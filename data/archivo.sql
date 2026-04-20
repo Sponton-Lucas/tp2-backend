@@ -1,4 +1,4 @@
-CREATE DATABASE tp2_db;
+CREATE DATABASE IF NOT EXISTS tp2_db;
 USE tp2_db;
 
 CREATE TABLE partidos (
