@@ -132,6 +132,9 @@ def post_prediccion(id):
         goles_local = prediccion.get("goles_local")
         goles_visitante = prediccion.get("goles_visitante")
 
+    if goles_local is None or goles_visitante is None:
+        return jsonify({'error': 'Faltan datos de goles.'}), 400
+
     if goles_local < 0 or goles_visitante < 0:
             return jsonify({'error': 'Los goles no pueden ser negativos.'}), 400 #bien
 
