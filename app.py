@@ -173,11 +173,23 @@ def post_usuario():
 
 @app.route('/usuarios', methods=['GET']) #falta paginacion
 def get_usuarios():
-    usuarios = db.obtener_usuarios()
-    if usuarios:
-        return jsonify(usuarios)
-    else:
-        return jsonify({'error': 'No existe la tabla'}), 404
+    limit = int(request.args.get('_limit', 10))
+    offset = int(request.args.get('_offset', 0))
+
+    usuarios, total = db.obtener_usuarios(limit, offset)
+
+    last_offset = max(0, ((total - 1) // limit) * limit)
+
+    respuesta = {
+        'data': usuarios,
+        'total': total,
+        '_first': f'/usuarios?_limit={limit}&_offset=0',
+        '_prev': f'/usuarios?_limit={limit}&_offset={max(0, offset - limit)}' if offset > 0 else None,
+        '_next': f'/usuarios?_limit={limit}&_offset={min(last_offset, offset + limit)}' if (offset + limit) < total else None,
+        '_last': f'/usuarios?_limit={limit}&_offset={last_offset}'
+    }
+
+    return jsonify(respuesta)
     
 @app.route('/usuarios/<int:id>', methods=['GET'])
 def get_usuario_por_id(id):

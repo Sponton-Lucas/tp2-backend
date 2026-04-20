@@ -171,14 +171,19 @@ def crear_usuario(nombre, email):
             cursor.close()
             coneccion.close()
 
-def obtener_usuarios():
+def obtener_usuarios(limit, offset):
     coneccion = get_db_connection()
     cursor = coneccion.cursor(dictionary=True)
-    
+
     try:
-        cursor.execute('SELECT * FROM usuarios')
-        todos_usuarios = cursor.fetchall()
-        return todos_usuarios
+        cursor.execute('SELECT COUNT(*) as total FROM usuarios')
+        total = cursor.fetchone()['total']
+
+        cursor.execute('SELECT * FROM usuarios LIMIT %s OFFSET %s', (limit, offset))
+        usuarios = cursor.fetchall()
+
+        return usuarios, total
+
     finally:
         cursor.close()
         coneccion.close()
